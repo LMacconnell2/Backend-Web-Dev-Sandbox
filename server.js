@@ -1,7 +1,14 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+ 
+// Import route handlers from their new locations
+import indexRoutes from './src/routes/index.js';
+import exploreRoutes from './src/routes/explore/index.js';
+ 
+// Import global middleware
+import { addGlobalData } from './src/middleware/index.js';
+ 
 /**
  * Define important variables
  */
@@ -31,88 +38,13 @@ app.set('views', path.join(__dirname, 'src/views'));
 /**
  * Middleware
  */
-// Middleware to add global data to res.locals
-app.use((req, res, next) => {
-    // Get the current year for copyright notice
-    res.locals.currentYear = new Date().getFullYear();
- 
-    // Add NODE_ENV for all views
-    res.locals.NODE_ENV = process.env.NODE_ENV || 'development';
- 
-    next();
-});
-
-// Middleware to validate display parameter
-const validateDisplayMode = (req, res, next) => {
-    const { display } = req.params;
-    if (display !== 'grid' && display !== 'details') {
-        return res.status(400).send('Invalid display mode: must be either "grid" or "details".');
-    }
-    next(); // Pass control to the next middleware or route
-};
+app.use(addGlobalData);
  
 /**
  * Routes
  */
-app.get('/', (req, res) => {
-    const title = "Home";
-    res.render('home', { title });
-});
-
-app.get('/about', (req, res) => {
-    const title = "About";
-    res.render('about', { title });
-});
-
-// Products page route with display mode validation
-app.get('/products/:display', validateDisplayMode, (req, res) => {
-    const title = "Our Products";
-    const { display } = req.params;
- 
-    // Sample product data
-    const products = [
-        {
-            id: 1,
-            name: "Kindle E-Reader",
-            description: "Lightweight e-reader with a glare-free display and weeks of battery life.",
-            price: 149.99,
-            image: "https://picsum.photos/id/367/800/600"
-        },
-        {
-            id: 2,
-            name: "Vintage Film Camera",
-            description: "Capture timeless moments with this classic vintage film camera, perfect for photography enthusiasts.",
-            price: 199.99,
-            image: "https://picsum.photos/id/250/800/600"
-        }
-    ];
- 
-    res.render('products', { title, products, display });
-});
- 
-// Default products route (redirects to grid view)
-app.get('/products', (req, res) => {
-    res.redirect('/products/grid');
-});
-
-// Updated route to handle both route and query parameters
-app.get('/explore/:category/:id', (req, res) => {
-    // Get route parameters
-    const { category, id } = req.params;
- 
-    // Get query parameters (optional)
-    const { sort = 'default', filter = 'none' } = req.query;
- 
-    // Log all parameters for debugging
-    console.log('Route Parameters:', req.params);
-    console.log('Query Parameters:', req.query);
- 
-    // Set the title for the page
-    const title = `Exploring ${category}`;
- 
-    // Render the template with all parameters
-    res.render('explore', { title, category, id, sort, filter });
-});
+app.use('/', indexRoutes);
+app.use('/explore', exploreRoutes);
  
 // 404 Error Handler
 app.use((req, res, next) => {
