@@ -1,10 +1,14 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { setupDatabase, testConnection } from './src/models/setup.js';
+import dashboardRoutes from './src/routes/dashboard/index.js';
+
+import testRoutes from './src/routes/test.js';
  
 // Import route handlers from their new locations
 import indexRoutes from './src/routes/index.js';
-import exploreRoutes from './src/routes/explore/index.js';
+import productRoutes from './src/routes/product/index.js';
  
 // Import global middleware
 import { addGlobalData } from './src/middleware/index.js';
@@ -34,18 +38,31 @@ app.set('view engine', 'ejs');
  
 // Set the views directory (where your templates are located)
 app.set('views', path.join(__dirname, 'src/views'));
+
+// Middleware to parse JSON data in request body
+app.use(express.json());
+ 
+// Middleware to parse URL-encoded form data (like from a standard HTML form)
+app.use(express.urlencoded({ extended: true }));
  
 /**
  * Middleware
  */
 app.use(addGlobalData);
+
+app.use(express.json());
+
+app.use(express.urlencoded({extended: true}));
+
+app.use('/dashboard', dashboardRoutes);
  
 /**
  * Routes
  */
 app.use('/', indexRoutes);
-app.use('/explore', exploreRoutes);
- 
+app.use('/product', productRoutes);
+app.use('/test', testRoutes);
+
 // 404 Error Handler
 app.use((req, res, next) => {
     const err = new Error('Page Not Found');
@@ -95,6 +112,13 @@ if (NODE_ENV.includes('dev')) {
 }
  
 // Start the Express server on the specified port
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+    try {
+        await testConnection();
+        await setupDatabase();
+    } catch (error) {
+        console.error('Database setup failed:', error);
+        process.exit(1);
+    }
     console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });

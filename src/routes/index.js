@@ -48,14 +48,14 @@ router.get('/about', (req, res) => {
  
 // Default products route (redirects to grid view)
 router.get('/products', (req, res) => {
-    res.redirect('/products/grid');
+    res.redirect('/product/grid');
 });
  
 // Products page route with display mode validation
 router.get('/products/:display', validateDisplayMode, (req, res) => {
     const title = "Our Products";
     const { display } = req.params;
-    res.render('products', { title, products, display });
+    res.render('product', { title, products, display });
 });
  
 export default router;
