@@ -46,6 +46,7 @@ router.get('/:category', async (req, res, next) => {
     // Get subcategories and products for this category
     const subcategories = await getChildCategories(categoryData.id);
     const products = await getProductsByCategory(categoryData.id);
+
  
     // Render the products template
     res.render('products', {
@@ -57,6 +58,8 @@ router.get('/:category', async (req, res, next) => {
         hasProducts: products.length > 0,
         hasSubcategories: subcategories.length > 0
     });
+
+    console.log("product index.js running");
 });
  
 export default router;

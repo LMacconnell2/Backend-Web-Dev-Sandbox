@@ -3,6 +3,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { setupDatabase, testConnection } from './src/models/setup.js';
 import dashboardRoutes from './src/routes/dashboard/index.js';
+import db from './src/models/db.js';
+import session from 'express-session';
+import pgSession from 'connect-pg-simple';
+import accountRoutes from './src/routes/accounts/index.js';
+import flashMessages from './src/middleware/flash.js';
 
 import testRoutes from './src/routes/test.js';
  
@@ -54,6 +59,30 @@ app.use(express.json());
 
 app.use(express.urlencoded({extended: true}));
 
+// Add flash message middleware (after session, before routes)
+app.use(flashMessages);
+
+// Configure PostgreSQL session store
+const PostgresStore = pgSession(session);
+ 
+// Configure session middleware
+app.use(session({
+    store: new PostgresStore({
+        pool: db, // Use your PostgreSQL connection
+        tableName: 'sessions', // Table name for storing sessions
+        createTableIfMissing: true // Creates table if it does not exist
+    }),
+    secret: process.env.SESSION_SECRET || "default-secret-change-in-production",
+    resave: false,
+    saveUninitialized: false,
+    name: "sessionId",
+    cookie: {
+        secure: false, // Set to true in production with HTTPS
+        httpOnly: true, // Prevents client-side access to the cookie
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days in milliseconds
+    }
+}));
+
 app.use('/dashboard', dashboardRoutes);
  
 /**
@@ -62,6 +91,7 @@ app.use('/dashboard', dashboardRoutes);
 app.use('/', indexRoutes);
 app.use('/product', productRoutes);
 app.use('/test', testRoutes);
+app.use('/accounts', accountRoutes);
 
 // 404 Error Handler
 app.use((req, res, next) => {

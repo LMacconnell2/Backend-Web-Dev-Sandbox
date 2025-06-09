@@ -7,6 +7,14 @@ const router = express.Router();
  * Dashboard home page - displays navigation to product management features
  */
 router.get('/', async (req, res, next) => {
+    // Require authentication
+    if (!req.session.isLoggedIn) {
+        res.locals.errors.push('Please log in to access the dashboard');
+        return res.render('accounts/login', {
+            title: 'Login'
+        });
+    }
+ 
     try {
         const products = await getAllProducts();
         res.render('dashboard/index', {
@@ -22,6 +30,12 @@ router.get('/', async (req, res, next) => {
  * Display the add product form
  */
 router.get('/add-product', (req, res) => {
+        if (!req.session.isLoggedIn) {
+        res.locals.errors.push('Please log in to access the dashboard');
+        return res.render('accounts/login', {
+            title: 'Login'
+        });
+    }
     res.render('dashboard/add-product', {
         title: 'Add Product',
         errors: null,
@@ -95,6 +109,12 @@ router.post('/add-product', async (req, res, next) => {
  * Display the edit product page (placeholder for future assignment)
  */
 router.get('/edit-product', (req, res) => {
+        if (!req.session.isLoggedIn) {
+        res.locals.errors.push('Please log in to access the dashboard');
+        return res.render('accounts/login', {
+            title: 'Login'
+        });
+    }
     res.render('dashboard/edit-product', {
         title: 'Edit Product'
     });

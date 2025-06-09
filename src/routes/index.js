@@ -28,7 +28,8 @@ const products = [
  
 // Middleware to validate display parameter
 const validateDisplayMode = (req, res, next) => {
-    const { display } = req.params;
+    console.log("validateDisplayModeRunning");
+    let { display } = req.params;
     if (display !== 'grid' && display !== 'details') {
         const error = new Error('Invalid display mode: must be either "grid" or "details".');
         next(error); // Pass control to the error-handling middleware
